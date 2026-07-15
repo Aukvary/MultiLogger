@@ -1,0 +1,32 @@
+[
+    {
+        "command": "g++ -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc  -c src/lib/FileWriter.cpp -o build/lib/FileWriter.o",
+        "directory": "/home/aukvary/projects/multithread-logger",
+        "file": "/home/aukvary/projects/multithread-logger/src/lib/FileWriter.cpp"
+    },
+    {
+        "command": "g++ -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc  -c src/lib/Log.cpp -o build/lib/Log.o",
+        "directory": "/home/aukvary/projects/multithread-logger",
+        "file": "/home/aukvary/projects/multithread-logger/src/lib/Log.cpp"
+    },
+    {
+        "command": "g++ -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc  -c src/lib/LogType.cpp -o build/lib/LogType.o",
+        "directory": "/home/aukvary/projects/multithread-logger",
+        "file": "/home/aukvary/projects/multithread-logger/src/lib/LogType.cpp"
+    },
+    {
+        "command": "g++ -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc  -c src/lib/SafeQueue.cpp -o build/lib/SafeQueue.o",
+        "directory": "/home/aukvary/projects/multithread-logger",
+        "file": "/home/aukvary/projects/multithread-logger/src/lib/SafeQueue.cpp"
+    },
+    {
+        "command": "g++ -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc  -c src/app/main.cpp -o build/app/main.o",
+        "directory": "/home/aukvary/projects/multithread-logger",
+        "file": "/home/aukvary/projects/multithread-logger/src/app/main.cpp"
+    },
+    {
+        "command": "g++ -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc  -c test/main.cpp -o build/test/main.o",
+        "directory": "/home/aukvary/projects/multithread-logger",
+        "file": "/home/aukvary/projects/multithread-logger/test/main.cpp"
+    }
+]
