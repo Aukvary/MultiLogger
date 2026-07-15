@@ -1,2 +1,9 @@
 .cache/**
 .vscode/**
+*.o
+*.so
+*.a
+*.out
+logger_app
+logger_test
+*.log
