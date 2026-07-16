@@ -44,6 +44,11 @@ namespace MultiLogger {
         _logQueue.push(std::move(log));
     }
 
+    void FileWriter::Log(std::string_view message) {
+        std::shared_lock<std::shared_mutex> lock(_writerMutex);
+        Log(MultiLogger::Log{message, _defaultType});
+    }
+
     void FileWriter::Log(std::string_view message, LogType type) {
         Log(MultiLogger::Log{message, type});
     }

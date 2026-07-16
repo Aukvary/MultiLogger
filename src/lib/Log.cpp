@@ -8,6 +8,6 @@ namespace MultiLogger {
     }
 
     std::ostream& operator<<(std::ostream& os, const Log& log) {
-        return os << log._message << " [" << LogTypeToStringView(log._type) << "]";
+        return os << "[" << LogTypeToStringView(log._type) << "] " << log._message;
     }
 }

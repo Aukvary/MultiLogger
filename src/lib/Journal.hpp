@@ -13,6 +13,7 @@
 namespace MultiLogger {
     enum class LogType : char { Message, Warning, Error };
     std::string_view LogTypeToStringView(LogType type);
+    std::optional<LogType> StringToLogType(std::string_view str);
 
     struct Log {
     private:
@@ -59,7 +60,7 @@ namespace MultiLogger {
     class FileWriter {
     private:
         using system_clock = std::chrono::system_clock;
-        SafeQueue<Log> _logQueue;
+        SafeQueue<MultiLogger::Log> _logQueue;
 
         std::shared_mutex _writerMutex;
         std::string _fileName;
@@ -98,6 +99,7 @@ namespace MultiLogger {
         void DefaultType(LogType type);
 
         void Log(Log log);
+        void Log(std::string_view message);
         void Log(std::string_view message, LogType type);
         void Log(std::string_view message, system_clock::time_point time, LogType type);
 

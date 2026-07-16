@@ -1,6 +1,9 @@
 #include <iostream>
 #include <optional>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 #include "lib/Journal.hpp"
 
@@ -12,15 +15,16 @@ const char* TUTORIAL = "\n"
                        " │  -f <path>     Set target file for writing logs          │\n"
                        " │  -dt <type>    Set default log level (Type)              │\n"
                        " │  -tl           Print list of all supported log types     │\n"
+                       " │  -l            log                                       │\n"
                        " ├──────────────────────────────────────────────────────────┤\n"
-                       " │  ctrl+q        Safe exit from application                │\n"
+                       " │  exit        Safe exit from application                  │\n"
                        " └──────────────────────────────────────────────────────────┘\n";
 
 int main(int argc, char* argv[]) {
-    std::cout << "-h for help" << std::endl;
+    std::cout << TUTORIAL << std::endl;
 
     std::optional<std::string_view> startFile{std::nullopt};
-    MultiLogger::LogType startType = MultiLogger::LogType::Message;
+    std::optional<MultiLogger::LogType> startType{MultiLogger::LogType::Message};
 
     for (int i = 0; i < argc; i++) {
         std::string_view arg{argv[i]};
@@ -39,15 +43,10 @@ int main(int argc, char* argv[]) {
             }
 
             std::string_view type = argv[++i];
-
-            if (type == "Message") {
-                startType = MultiLogger::LogType::Message;
-            } else if (type == "Warning") {
-                startType = MultiLogger::LogType::Warning;
-            } else if (type == "Error") {
-                startType = MultiLogger::LogType::Error;
-            } else {
+            startType = MultiLogger::StringToLogType(type);
+            if (!startType) {
                 std::cout << "Undefined type" << type << std::endl;
+                startType = MultiLogger::LogType::Message;
             }
         }
     }
@@ -55,15 +54,84 @@ int main(int argc, char* argv[]) {
     std::optional<MultiLogger::FileWriter> fileWriter;
 
     try {
-        fileWriter.emplace(startFile, startType);
+        fileWriter.emplace(startFile, *startType);
     } catch (const std::runtime_error& err) {
-        fileWriter.emplace(std::nullopt, startType);
+        fileWriter.emplace(std::nullopt, *startType);
         std::cout << err.what() << std::endl;
     }
 
-    std::cout << fileWriter->File() << "> ";
+    std::string input;
 
-    while (true) {
+    while (std::cout << fileWriter->File() << "("
+                     << MultiLogger::LogTypeToStringView(fileWriter->DefaultType())
+                     << ")"
+                        "> "
+                     << std::flush,
+           std::getline(std::cin, input)) {
+        if (input.empty()) {
+            continue;
+        }
+
+        if (input == "exit") {
+            break;
+        }
+
+        std::stringstream ss(input);
+        std::string command;
+
+        ss >> command;
+
+        if (command == "-h") {
+            std::cout << TUTORIAL << std::endl;
+            continue;
+        }
+        if (command == "-tl") {
+            std::cout << "Supported types: Message, Warning, Error" << std::endl;
+            continue;
+        }
+
+        std::string arg;
+
+        if (command == "-f") {
+            if (!(ss >> arg)) {
+                std::cout << "Error: -f requires a file path" << std::endl;
+                continue;
+            }
+            fileWriter->File(arg);
+            continue;
+        }
+
+        if (command == "-dt") {
+            if (!(ss >> arg)) {
+                std::cout << "Error: -dt requires a log type" << std::endl;
+                continue;
+            }
+
+            auto type = MultiLogger::StringToLogType(arg);
+
+            if (type)
+                fileWriter->DefaultType(*type);
+            else
+                std::cout << "Undefined type" << arg << std::endl;
+        } else if (command == "-l") {
+            if (!(ss >> arg)) {
+                std::cout << "Error: -l requires a message" << std::endl;
+                continue;
+            }
+
+            auto type = MultiLogger::StringToLogType(arg);
+
+            if (type) {
+                std::getline(ss >> std::ws, arg);
+                fileWriter->Log(arg, *type);
+            } else {
+                std::string remain;
+                std::getline(ss, remain);
+                fileWriter->Log(arg + remain);
+            }
+        } else {
+            std::cout << "undefined command" << std::endl;
+        }
     }
 
     return 0;

@@ -36,4 +36,6 @@ namespace MultiLogger {
 
         _condVar.notify_all();
     }
+
+    template class MultiLogger::SafeQueue<MultiLogger::Log>;
 } // namespace MultiLogger
