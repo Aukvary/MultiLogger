@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
 
     std::string input;
 
-    while (std::cout << fileWriter->File() << "("
+    while (std::cout << fileWriter->File() << ":("
                      << MultiLogger::LogTypeToStringView(fileWriter->DefaultType())
                      << ")"
                         "> "
