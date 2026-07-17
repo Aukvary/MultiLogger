@@ -1,9 +1,9 @@
 .cache/**
 .vscode/**
+.build/**
 *.o
 *.so
-*.a
-*.out
 logger_app
 logger_test
 *.log
+test.pdf

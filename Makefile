@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc 
+CXXFLAGS = -std=c++17 -Wall -Wextra -Werror -fPIC -pthread -Isrc
 LDFLAGS = -L$(BUILD_DIR) -lmultilogger -Wl,-rpath,$(BUILD_DIR)
 
 BUILD_DIR = ./build
@@ -45,4 +45,6 @@ $(BUILD_DIR)/test/%.o: ./test/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -fr $(BUILD_DIR)/app
+	rm -fr $(BUILD_DIR)/lib
+	rm -fr $(BUILD_DIR)/test

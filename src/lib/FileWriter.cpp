@@ -36,24 +36,29 @@ namespace MultiLogger {
     }
 
 
-    void FileWriter::Log(MultiLogger::Log log) {
-        std::shared_lock<std::shared_mutex> lock(_writerMutex);
+    void FileWriter::PushLog(MultiLogger::Log log) {
         if (log.Type() < _defaultType)
             return;
-
         _logQueue.push(std::move(log));
     }
 
-    void FileWriter::Log(std::string_view message) {
+    void FileWriter::Log(MultiLogger::Log log) {
         std::shared_lock<std::shared_mutex> lock(_writerMutex);
-        Log(MultiLogger::Log{message, _defaultType});
+        PushLog(std::move(log));    
+    }
+
+    void FileWriter::Log(std::string_view message) {
+        std::shared_lock<std::shared_mutex> lock(_writerMutex); 
+        PushLog(MultiLogger::Log{message, _defaultType});
     }
 
     void FileWriter::Log(std::string_view message, LogType type) {
-        Log(MultiLogger::Log{message, type});
+        std::shared_lock lock(_writerMutex);
+        PushLog(MultiLogger::Log{message, type});
     }
 
     void FileWriter::Log(std::string_view message, system_clock::time_point time, LogType type) {
-        Log(MultiLogger::Log{message, time, type});
+        std::shared_lock lock(_writerMutex);
+        PushLog(MultiLogger::Log{message, time, type});
     }
 } // namespace MultiLogger

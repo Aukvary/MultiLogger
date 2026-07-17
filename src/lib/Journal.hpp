@@ -2,6 +2,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <fstream>
+#include <iostream>
 #include <optional>
 #include <ostream>
 #include <queue>
@@ -51,9 +52,36 @@ namespace MultiLogger {
         bool _is_stopped = false;
 
     public:
-        void push(T el);
-        std::optional<T> pop();
-        void stop();
+        void push(T el) {
+            {
+                std::lock_guard<std::mutex> lock(_mutex);
+                _queue.push(std::move(el));
+            }
+            _condVar.notify_one();
+        }
+
+        std::optional<T> pop() {
+            std::unique_lock<std::mutex> lock(_mutex);
+
+            _condVar.wait(lock, [this]() { return !this->_queue.empty() || this->_is_stopped; });
+
+            if (_queue.empty() && _is_stopped)
+                return std::nullopt;
+
+            T el = std::move(_queue.front());
+            _queue.pop();
+
+            return el;
+        }
+
+        void stop() {
+            {
+                std::lock_guard<std::mutex> lock(_mutex);
+                _is_stopped = true;
+            }
+
+            _condVar.notify_all();
+        }
     };
 
 
@@ -68,6 +96,8 @@ namespace MultiLogger {
         LogType _defaultType;
 
         std::thread _writerThread;
+
+        void PushLog(MultiLogger::Log log);
 
     public:
         FileWriter(std::optional<std::string_view> fileName, LogType defaultType) :
@@ -85,6 +115,9 @@ namespace MultiLogger {
                     std::shared_lock<std::shared_mutex> lock(_writerMutex);
                     if (_fileStream.is_open())
                         _fileStream << log << std::endl;
+                    else
+                        std::cerr << "[Error] File was has missed, log \"" << log
+                                  << "\" was has lost" << std::endl;
                 }
             }};
         }

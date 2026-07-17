@@ -7,8 +7,7 @@
 #include <string_view>
 #include "lib/Journal.hpp"
 
-const char* TUTORIAL = "\n"
-                       " ┌──────────────────────────────────────────────────────────┐\n"
+const char* TUTORIAL = " ┌──────────────────────────────────────────────────────────┐\n"
                        " │  Options & Commands:                                     │\n"
                        " ├──────────────────────────────────────────────────────────┤\n"
                        " │  -h            Display this help message                 │\n"
@@ -18,7 +17,7 @@ const char* TUTORIAL = "\n"
                        " │  -l            log                                       │\n"
                        " ├──────────────────────────────────────────────────────────┤\n"
                        " │  exit        Safe exit from application                  │\n"
-                       " └──────────────────────────────────────────────────────────┘\n";
+                       " └──────────────────────────────────────────────────────────┘";
 
 int main(int argc, char* argv[]) {
     std::cout << TUTORIAL << std::endl;
@@ -31,22 +30,21 @@ int main(int argc, char* argv[]) {
 
         if (arg == "-f") {
             if (i == argc - 1) {
-                std::cout << "lost arg -f";
+                std::cerr << "[Warning] lost arg -f";
                 break;
             }
 
             startFile = argv[++i];
         } else if (arg == "-dt") {
             if (i == argc - 1) {
-                std::cout << "lost arg -dt";
+                std::cerr << "[Warning] lost arg -dt";
                 break;
             }
 
             std::string_view type = argv[++i];
             startType = MultiLogger::StringToLogType(type);
             if (!startType) {
-                std::cout << "Undefined type" << type << std::endl;
-                startType = MultiLogger::LogType::Message;
+                std::cerr << "[Warning] Undefined type" << type << std::endl;
             }
         }
     }
@@ -57,7 +55,7 @@ int main(int argc, char* argv[]) {
         fileWriter.emplace(startFile, *startType);
     } catch (const std::runtime_error& err) {
         fileWriter.emplace(std::nullopt, *startType);
-        std::cout << err.what() << std::endl;
+        std::cerr << err.what() << std::endl;
     }
 
     std::string input;
@@ -94,7 +92,7 @@ int main(int argc, char* argv[]) {
 
         if (command == "-f") {
             if (!(ss >> arg)) {
-                std::cout << "Error: -f requires a file path" << std::endl;
+                std::cerr << "[Warning] -f requires a file path" << std::endl;
                 continue;
             }
             fileWriter->File(arg);
@@ -103,7 +101,7 @@ int main(int argc, char* argv[]) {
 
         if (command == "-dt") {
             if (!(ss >> arg)) {
-                std::cout << "Error: -dt requires a log type" << std::endl;
+                std::cerr << "[Warning] -dt requires a log type" << std::endl;
                 continue;
             }
 
@@ -112,10 +110,10 @@ int main(int argc, char* argv[]) {
             if (type)
                 fileWriter->DefaultType(*type);
             else
-                std::cout << "Undefined type" << arg << std::endl;
+                std::cerr << "[Warning] Undefined type" << arg << std::endl;
         } else if (command == "-l") {
             if (!(ss >> arg)) {
-                std::cout << "Error: -l requires a message" << std::endl;
+                std::cerr << "[Warning] -l requires a message" << std::endl;
                 continue;
             }
 
@@ -130,7 +128,7 @@ int main(int argc, char* argv[]) {
                 fileWriter->Log(arg + remain);
             }
         } else {
-            std::cout << "undefined command" << std::endl;
+            std::cerr << "[Warning] undefined command" << std::endl;
         }
     }
 
