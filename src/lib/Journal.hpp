@@ -4,7 +4,6 @@
 #include <fstream>
 #include <iostream>
 #include <optional>
-#include <ostream>
 #include <queue>
 #include <shared_mutex>
 #include <stdexcept>
@@ -15,6 +14,7 @@ namespace MultiLogger {
     enum class LogType : char { Message, Warning, Error };
     std::string_view LogTypeToStringView(LogType type);
     std::optional<LogType> StringToLogType(std::string_view str);
+    std::ostream& operator<<(std::ostream& os, LogType type);
 
     struct Log {
     private:
@@ -39,7 +39,7 @@ namespace MultiLogger {
 
         friend std::ostream& operator<<(std::ostream& os, const Log& log);
 
-        LogType Type();
+        LogType Type() const;
     };
 
 
@@ -52,7 +52,7 @@ namespace MultiLogger {
         bool _is_stopped = false;
 
     public:
-        void push(T el) {
+        void push(const T& el) {
             {
                 std::lock_guard<std::mutex> lock(_mutex);
                 _queue.push(std::move(el));
@@ -90,7 +90,7 @@ namespace MultiLogger {
         using system_clock = std::chrono::system_clock;
         SafeQueue<MultiLogger::Log> _logQueue;
 
-        std::shared_mutex _writerMutex;
+        mutable std::shared_mutex _writerMutex;
         std::string _fileName;
         std::ofstream _fileStream;
         LogType _defaultType;
@@ -101,8 +101,7 @@ namespace MultiLogger {
 
     public:
         FileWriter(std::optional<std::string_view> fileName, LogType defaultType) :
-            _fileName{fileName ? std::string(*fileName) : "~undefined~"},
-            _defaultType{defaultType} {
+            _fileName{fileName.value_or("~undefined~")}, _defaultType{defaultType} {
             if (fileName != std::nullopt) {
                 _fileStream.open(std::string(*fileName), std::ios::app);
                 if (!_fileStream.is_open())
@@ -114,7 +113,7 @@ namespace MultiLogger {
                     MultiLogger::Log log = std::move(*logOpt);
                     std::shared_lock<std::shared_mutex> lock(_writerMutex);
                     if (_fileStream.is_open())
-                        _fileStream << log << std::endl;
+                        _fileStream << log << '\n';
                     else
                         std::cerr << "[Error] File was has missed, log \"" << log
                                   << "\" was has lost" << std::endl;
@@ -125,10 +124,10 @@ namespace MultiLogger {
         FileWriter(const FileWriter&) = delete;
         FileWriter& operator=(const FileWriter&) = delete;
 
-        std::string File();
+        std::string File() const;
         void File(std::string_view fileName);
 
-        LogType DefaultType();
+        LogType DefaultType() const;
         void DefaultType(LogType type);
 
         void Log(Log log);

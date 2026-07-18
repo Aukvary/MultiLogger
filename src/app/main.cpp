@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
     std::optional<std::string_view> startFile{std::nullopt};
     std::optional<MultiLogger::LogType> startType{MultiLogger::LogType::Message};
 
-    for (int i = 0; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         std::string_view arg{argv[i]};
 
         if (arg == "-f") {

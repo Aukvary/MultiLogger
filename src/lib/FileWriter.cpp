@@ -3,14 +3,14 @@
 #include "Journal.hpp"
 
 namespace MultiLogger {
-    std::string FileWriter::File() {
+    std::string FileWriter::File() const {
         std::shared_lock<std::shared_mutex> lock(_writerMutex);
         return _fileName;
     }
 
     void FileWriter::File(std::string_view fileName) {
         std::unique_lock<std::shared_mutex> lock(_writerMutex);
-        
+
         if (_fileStream.is_open()) {
             _fileStream.close();
         }
@@ -24,8 +24,7 @@ namespace MultiLogger {
         }
     }
 
-
-    LogType FileWriter::DefaultType() {
+    LogType FileWriter::DefaultType() const {
         std::shared_lock<std::shared_mutex> lock(_writerMutex);
         return _defaultType;
     }
@@ -35,7 +34,6 @@ namespace MultiLogger {
         _defaultType = type;
     }
 
-
     void FileWriter::PushLog(MultiLogger::Log log) {
         if (log.Type() < _defaultType)
             return;
@@ -44,21 +42,21 @@ namespace MultiLogger {
 
     void FileWriter::Log(MultiLogger::Log log) {
         std::shared_lock<std::shared_mutex> lock(_writerMutex);
-        PushLog(std::move(log));    
+        PushLog(std::move(log));
     }
 
     void FileWriter::Log(std::string_view message) {
-        std::shared_lock<std::shared_mutex> lock(_writerMutex); 
+        std::shared_lock<std::shared_mutex> lock(_writerMutex);
         PushLog(MultiLogger::Log{message, _defaultType});
     }
 
     void FileWriter::Log(std::string_view message, LogType type) {
-        std::shared_lock lock(_writerMutex);
+        std::shared_lock<std::shared_mutex> lock(_writerMutex);
         PushLog(MultiLogger::Log{message, type});
     }
 
     void FileWriter::Log(std::string_view message, system_clock::time_point time, LogType type) {
-        std::shared_lock lock(_writerMutex);
+        std::shared_lock<std::shared_mutex> lock(_writerMutex);
         PushLog(MultiLogger::Log{message, time, type});
     }
 } // namespace MultiLogger

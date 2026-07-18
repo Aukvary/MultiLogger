@@ -1,3 +1,4 @@
+#include <ostream>
 #include <string_view>
 #include "Journal.hpp"
 
@@ -12,9 +13,13 @@ namespace MultiLogger {
                 return "Warning"sv;
             case LogType::Error:
                 return "Error"sv;
+            default:
+                return {};
         }
+    }
 
-        return {};
+    std::ostream& operator<<(std::ostream& os, LogType type) {
+        return os << LogTypeToStringView(type);
     }
 
     std::optional<LogType> StringToLogType(std::string_view str) {

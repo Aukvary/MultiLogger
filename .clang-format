@@ -60,4 +60,3 @@ AllowShortFunctionsOnASingleLine: None
 AllowShortBlocksOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
 AlignAfterOpenBracket: AlwaysBreak
-...

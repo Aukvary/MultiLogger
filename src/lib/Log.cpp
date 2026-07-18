@@ -7,7 +7,7 @@
 using system_clock = std::chrono::system_clock;
 
 namespace MultiLogger {
-    LogType Log::Type() {
+    LogType Log::Type() const {
         return _type;
     }
 
