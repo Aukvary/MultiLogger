@@ -41,7 +41,7 @@ int main() {
         MyTest::TestCase(
             "StringToLogType_Invalid",
             []() {
-                auto r = MultiLogger::StringToLogType("BogusType");
+                auto r = MultiLogger::StringToLogType("Undefined");
                 MyTest::Assert(!r);
             }),
 

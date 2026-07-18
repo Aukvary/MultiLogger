@@ -6,7 +6,6 @@
 #include <optional>
 #include <queue>
 #include <shared_mutex>
-#include <stdexcept>
 #include <string_view>
 #include <thread>
 
@@ -36,10 +35,10 @@ namespace MultiLogger {
         Log(std::string_view message) :
             _message{message}, _time{system_clock::now()}, _type{LogType::Message} {
         }
+        
+        LogType Type() const;
 
         friend std::ostream& operator<<(std::ostream& os, const Log& log);
-
-        LogType Type() const;
     };
 
 
@@ -100,26 +99,7 @@ namespace MultiLogger {
         void PushLog(MultiLogger::Log log);
 
     public:
-        FileWriter(std::optional<std::string_view> fileName, LogType defaultType) :
-            _fileName{fileName.value_or("~undefined~")}, _defaultType{defaultType} {
-            if (fileName != std::nullopt) {
-                _fileStream.open(std::string(*fileName), std::ios::app);
-                if (!_fileStream.is_open())
-                    throw std::runtime_error{"Failed to open log file"};
-            }
-
-            _writerThread = std::thread{[this]() {
-                while (auto logOpt = _logQueue.pop()) {
-                    MultiLogger::Log log = std::move(*logOpt);
-                    std::shared_lock<std::shared_mutex> lock(_writerMutex);
-                    if (_fileStream.is_open())
-                        _fileStream << log << '\n';
-                    else
-                        std::cerr << "[Error] File was has missed, log \"" << log
-                                  << "\" was has lost" << std::endl;
-                }
-            }};
-        }
+        FileWriter(std::optional<std::string_view> fileName, LogType defaultType);
 
         FileWriter(const FileWriter&) = delete;
         FileWriter& operator=(const FileWriter&) = delete;
@@ -135,11 +115,6 @@ namespace MultiLogger {
         void Log(std::string_view message, LogType type);
         void Log(std::string_view message, system_clock::time_point time, LogType type);
 
-        ~FileWriter() {
-            _logQueue.stop();
-            if (_writerThread.joinable()) {
-                _writerThread.join();
-            }
-        }
+        ~FileWriter();
     };
 }; // namespace MultiLogger
