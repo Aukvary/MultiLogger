@@ -11,6 +11,14 @@ namespace MultiLogger {
         return _type;
     }
 
+    bool Log::IsFlushMarker() const {
+        return _isFlushMarker;
+    }
+
+    Log Log::CreateFlushMarker() {
+        return Log();
+    }
+
     std::ostream& operator<<(std::ostream& os, const Log& log) {
         auto time = system_clock::to_time_t(log._time);
         std::tm local_time{};
@@ -19,6 +27,7 @@ namespace MultiLogger {
         char time_buf[20];
         std::strftime(time_buf, sizeof(time_buf), "%Y-%m-%d %H:%M:%S", &local_time);
 
-        return os << "[" << LogTypeToStringView(log._type) << "][" << time_buf << "] " << log._message;
+        return os << "[" << LogTypeToString(log._type) << "][" << time_buf << "] "
+                  << log._message;
     }
 } // namespace MultiLogger

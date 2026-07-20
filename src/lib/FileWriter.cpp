@@ -1,3 +1,4 @@
+#include <mutex>
 #include <shared_mutex>
 #include <string>
 #include "Journal.hpp"
@@ -7,19 +8,32 @@ namespace MultiLogger {
         _fileName{fileName.value_or("~undefined~")}, _defaultType{defaultType} {
         if (fileName != std::nullopt) {
             _fileStream.open(std::string(*fileName), std::ios::app);
-            if (!_fileStream.is_open())
-                throw std::runtime_error{"Failed to open log file"};
+            if (!_fileStream.is_open()) {
+                _fileName = "~undefined~";
+                std::cerr << "[Error]Failed to open log file" << std::endl;
+            }
         }
 
         _writerThread = std::thread{[this]() {
             while (auto logOpt = _logQueue.pop()) {
-                MultiLogger::Log log = std::move(*logOpt);
+                MultiLogger::Log log = std::move(*logOpt);  
+
+                if (log.IsFlushMarker()) {
+                    std::unique_lock<std::mutex> lock(_flushMutex);
+                    _flushed = true;
+                    _flushCv.notify_one();
+                    _flushCv.wait(lock, [this]() {
+                        return !_fileChanging.load();
+                    });
+                    continue;
+                }
+
                 std::shared_lock<std::shared_mutex> lock(_writerMutex);
                 if (_fileStream.is_open())
                     _fileStream << log << '\n';
                 else
-                    std::cerr << "[Error] File was has missed, log \"" << log << "\" was has lost"
-                              << std::endl;
+                    std::cerr << "[Error] Log file has been lost, log \"" << log
+                              << "\" could not be written" << std::endl;
             }
         }};
     }
@@ -30,6 +44,18 @@ namespace MultiLogger {
     }
 
     void FileWriter::File(std::string_view fileName) {
+        {
+            std::unique_lock<std::shared_mutex> lock(_writerMutex);
+            _fileChanging.store(true);
+            _logQueue.push(MultiLogger::Log::CreateFlushMarker());
+        }
+
+        {
+            std::unique_lock<std::mutex> lock(_flushMutex);
+            _flushCv.wait(lock, [this]() { return _flushed; });
+            _flushed = false;
+        }
+
         std::unique_lock<std::shared_mutex> lock(_writerMutex);
 
         if (_fileStream.is_open()) {
@@ -38,7 +64,14 @@ namespace MultiLogger {
 
         _fileName = fileName;
 
-        _fileStream.open(_fileName, std::ios::app);
+        try {
+            _fileStream.open(_fileName, std::ios::app);
+        } catch (...) {
+            std::lock_guard<std::mutex> flushLock(_flushMutex);
+            _fileChanging.store(false);
+            _flushCv.notify_one();            
+            throw;
+        }
 
         if (!_fileStream.is_open()) {
             throw std::runtime_error{"Failed to open new log file"};

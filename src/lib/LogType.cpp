@@ -5,7 +5,7 @@
 using namespace std::string_view_literals;
 
 namespace MultiLogger {
-    std::string_view LogTypeToStringView(LogType type) {
+    std::string_view LogTypeToString(LogType type) {
         switch (type) {
             case LogType::Message:
                 return "Message"sv;
@@ -19,7 +19,7 @@ namespace MultiLogger {
     }
 
     std::ostream& operator<<(std::ostream& os, LogType type) {
-        return os << LogTypeToStringView(type);
+        return os << LogTypeToString(type);
     }
 
     std::optional<LogType> StringToLogType(std::string_view str) {

@@ -29,7 +29,7 @@ $(APP_TARGET): $(APP_OBJS) $(LIB_TARGET)
 $(TEST_TARGET): $(TEST_OBJS) $(LIB_TARGET)
 	$(CXX) $(CXXFLAGS) -o $@ $(TEST_OBJS) $(LDFLAGS)
 
-test: $(TEST_TARGET)
+test: $(TEST_TARGET) $(APP_TARGET)
 	$(TEST_TARGET)
 
 $(BUILD_DIR)/lib/%.o: ./src/lib/%.cpp
